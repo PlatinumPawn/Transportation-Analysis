@@ -182,6 +182,102 @@
             background: #00A043;
         }
         /* ========== END GEMINI CHAT STYLING ========== */
+
+        /* Fullscreen popup overlay */
+        #popup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        transition: opacity 0.4s ease;
+        }
+
+
+        #popup.hidden {
+        opacity: 0;
+        pointer-events: none;
+        }
+
+
+        #popup-content {
+        background: white;
+        color: #333;
+        padding: 30px 40px;
+        border-radius: 12px;
+        text-align: center;
+        max-width: 400px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+
+        #popup-content h1 {
+        margin-bottom: 10px;
+        }
+
+
+        #popup-content p {
+        margin-bottom: 20px;
+        }
+
+
+        #continue-btn {
+        background: #41a750;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        }
+
+
+        #continue-btn:hover {
+        background: #005fcc;
+        }
+
+
+        .popup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        transition: opacity 0.4s ease;
+        }
+
+
+        .popup.hidden {
+        opacity: 0;
+        pointer-events: none;
+        }
+
+
+        .popup-content {
+        background: white;
+        color: #333;
+        padding: 30px 40px;
+        border-radius: 12px;
+        text-align: center;
+        max-width: 400px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
     </style>
 </head>
 <body>
@@ -233,6 +329,69 @@
   <button id="toggle-chat" onclick="toggleChat()">Travel Assistant</button>
   <!-- ========== END GEMINI CHAT UI ========== -->
 
+  <div id="popup" class="popup">
+    <div id="popup-content">
+      <section id="about-carbon" style="font-family: 'Roboto', sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+        <h2 style="text-align: center; color: #41a750;">About Carbon Emissions & Transit Options</h2>
+
+
+        <p>
+            Carbon emissions trap heat in the Earth’s atmosphere, contributing to climate change and the greenhouse effect.
+            They also pollute the air and remain in the atmosphere for hundreds of years.
+        </p>
+
+
+        <p>
+            Transportation is the second largest source of carbon emissions.<sup><a href="https://www.mdpi.com/2071-1050/14/10/6248" target="_blank" style="color: #0078ff; text-decoration: none;">1</a></sup>
+            Cars release significantly more CO₂ per passenger than buses, trains, biking, or walking.<sup><a href="https://climate.mit.edu/explainers/public-transportation" target="_blank" style="color: #0078ff; text-decoration: none;">2</a></sup>
+        </p>
+
+
+        <p>By choosing public transit, carpooling, or active travel, you can help:</p>
+
+
+        <ul style="list-style-type: ''; margin-left: 20px;">
+            <li>Reduce pollution and improve air quality</li>
+            <li>Cut down on traffic and noise</li>
+            <li>Lower your carbon footprint</li>
+        </ul>
+
+
+        <p><em>Every small choice adds up — even one transit trip a week makes a difference!</em></p>
+        </section>
+      <button id="continue-btn">Continue</button>
+    </div>
+</div>
+
+
+<div id="about-popup" class="popup hidden">
+  <div class="popup-content">
+    <section style="font-family: 'Roboto', sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+      <h2 style="text-align: center; color: #41a750;">About Us</h2>
+
+
+      <p>
+        We’re a team dedicated to helping people make smarter, greener travel choices.
+        This application compares carbon emissions and travel times across different transportation modes,
+        making sure people see all the options and their environmental impact.
+      </p>
+
+
+      <p>
+        This project aims to raise awareness and visibility of carbon emissions in everyday transportation
+        and empower people to take more environmentally conscious routes.
+      </p>
+
+
+      <p><em>Together, we can make sustainable travel the easy choice.</em></p>
+    </section>
+
+
+    <button id="continue-to-map" style="background: #41a750; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 16px; cursor: pointer; transition: background 0.2s ease;">
+      Continue to Map
+    </button>
+  </div>
+</div>
   <!-- Load your JavaScript code -->
   <script src="script.js"></script>
 </body>
