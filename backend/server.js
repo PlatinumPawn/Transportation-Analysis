@@ -13,13 +13,15 @@ const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 const PORT = 8080;
 
 
-const MODES = ["driving", "transit", "bicycling", "walking"];
+const MODES = ["driving", "transit", "bicycling", "walking", "e-bike", "e-scooter"];
 
-const EMISSIONS_FACTORS = { //need to update
-  driving: 0.120,
-  transit: 0.065,
+const EMISSIONS_FACTORS = { // need to find kg CO2 per km
+  driving: 0.192,    
+  transit: 0.089,
   bicycling: 0.0,
-  walking: 0.0
+  walking: 0.0,
+  "e-bike": 0.015, 
+  "e-scooter": 0.021
 };
 
 app.get("/", (req, res) => {
@@ -36,7 +38,10 @@ app.get("/api/routes", async (req, res) => {
     const results = [];
 
     for (const mode of MODES) {
-      const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&mode=${mode}&key=${GOOGLE_API_KEY}`;
+      // e-bike & e-scooter by use driving
+      const actualMode = ["e-bike", "e-scooter"].includes(mode) ? "driving" : mode;
+
+      const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&mode=${actualMode}&key=${GOOGLE_API_KEY}`;
       const response = await axios.get(url);
       const data = response.data;
 
@@ -50,6 +55,7 @@ app.get("/api/routes", async (req, res) => {
         });
       }
     }
+      
 
     res.json(results);
   } catch (err) {
