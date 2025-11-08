@@ -592,14 +592,6 @@ function geocodeAddress(address, marker, elementId) {
   });
 }
 
-const overlay = document.getElementById('overlay-panel');
-const toggleButton = document.getElementById('toggle-overlay');
-
-toggleButton.addEventListener('click', () => {
-  const isHidden = overlay.classList.toggle('hidden');
-  toggleButton.textContent = isHidden ? 'Show Directions' : 'Hide Directions';
-});
-
 const transport = document.getElementById('transport-panel');
 const toggleTransport = document.getElementById('toggle-transport');
 
@@ -611,3 +603,78 @@ toggleTransport.addEventListener('click', () => {
 // Kick it off
 loadMap();
 window.initMap = initMap;
+
+// ========== GEMINI CHAT FUNCTIONS (EASY TO REMOVE) ==========
+// To remove: Delete everything from here to END GEMINI CHAT FUNCTIONS
+
+function toggleChat() {
+  const chatPanel = document.getElementById('chat-panel');
+  const toggleButton = document.getElementById('toggle-chat');
+  const isHidden = chatPanel.classList.toggle('hidden');
+  toggleButton.textContent = isHidden ? 'Travel Assistant' : 'Hide Assistant';
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const sendButton = document.getElementById('chat-send');
+  const messagesContainer = document.getElementById('chat-messages');
+
+  const message = input.value.trim();
+  if (!message) return;
+
+  // Add user message to chat
+  const userMessage = document.createElement('div');
+  userMessage.className = 'chat-message user';
+  userMessage.textContent = message;
+  messagesContainer.appendChild(userMessage);
+
+  // Clear input and disable button
+  input.value = '';
+  sendButton.disabled = true;
+  sendButton.textContent = 'Sending...';
+
+  // Scroll to bottom
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+  try {
+    // Send to backend with current route data
+    const response = await fetch('http://localhost:8080/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: message,
+        routeData: allRoutesData // Send current route data for context
+      })
+    });
+
+    const data = await response.json();
+
+    // Add AI response to chat
+    const aiMessage = document.createElement('div');
+    aiMessage.className = 'chat-message ai';
+    aiMessage.textContent = data.reply || 'Sorry, I couldn\'t process that.';
+    messagesContainer.appendChild(aiMessage);
+
+  } catch (error) {
+    console.error('Chat error:', error);
+    const errorMessage = document.createElement('div');
+    errorMessage.className = 'chat-message ai';
+    errorMessage.textContent = 'Sorry, I\'m having trouble connecting. Please try again.';
+    messagesContainer.appendChild(errorMessage);
+  } finally {
+    // Re-enable button
+    sendButton.disabled = false;
+    sendButton.textContent = 'Send';
+
+    // Scroll to bottom
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+}
+
+// Make functions globally available
+window.toggleChat = toggleChat;
+window.sendChatMessage = sendChatMessage;
+
+// ========== END GEMINI CHAT FUNCTIONS ==========

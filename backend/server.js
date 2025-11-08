@@ -3,6 +3,7 @@ import axios from "axios";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 dotenv.config();
 
@@ -11,7 +12,8 @@ app.use(cors());
 app.use(express.json());
 
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
-const PORT = process.env.PORT || 8080;;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const PORT = process.env.PORT || 8080;
 
 //serves frontend static files from backend/public
 const publicPath = path.join(process.cwd(), "public");
@@ -169,5 +171,106 @@ app.get("/api/key", (req, res) => {
   console.log("API Key requested");
   res.json({ key: process.env.GOOGLE_API_KEY });
 });
+
+// ========== GEMINI AI CHAT ENDPOINT (EASY TO REMOVE) ==========
+// To remove: Delete everything between these comment blocks
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { message, routeData } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
+    }
+
+    // Initialize Gemini model (2.5 flash - stable version)
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+    // Get current date/time context
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const dateString = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const hour = now.getHours();
+    const isRushHour = (hour >= 7 && hour <= 9) || (hour >= 16 && hour <= 19);
+
+    // Build enhanced context with ALL available data
+    let context = `You are EcoRoute AI, an intelligent travel assistant for a sustainable transportation app.
+
+CURRENT CONTEXT:
+- Date: ${dateString}
+- Time: ${timeString}
+- Rush Hour: ${isRushHour ? 'YES (expect delays)' : 'No'}
+
+YOUR JOB:
+1. Help users choose the most eco-friendly transportation option
+2. Explain environmental impact in simple, relatable terms
+3. Suggest optimal travel times to avoid traffic and reduce emissions
+4. Recommend carpooling when it significantly reduces carbon footprint
+5. Be friendly, concise, and actionable
+
+`;
+
+    if (routeData && routeData.length > 0) {
+      context += "AVAILABLE TRANSPORTATION OPTIONS:\n\n";
+
+      // Sort by emissions (lowest first) for context
+      const sortedRoutes = [...routeData].sort((a, b) => a.carbon_kg - b.carbon_kg);
+
+      sortedRoutes.forEach((route, index) => {
+        context += `${index + 1}. ${route.mode.toUpperCase()}\n`;
+        context += `   • Distance: ${route.distance_km.toFixed(2)} km\n`;
+        context += `   • Base Time: ${Math.round(route.duration_min)} minutes\n`;
+
+        if (route.has_traffic_data && route.duration_with_traffic_min) {
+          const delay = route.duration_with_traffic_min - route.duration_min;
+          context += `   • Current Time (with traffic): ${Math.round(route.duration_with_traffic_min)} minutes`;
+          if (delay > 0) {
+            context += ` (+${Math.round(delay)} min delay)\n`;
+          } else {
+            context += ` (no delays)\n`;
+          }
+        }
+
+        context += `   • CO₂ Emissions: ${route.carbon_kg.toFixed(2)} kg`;
+
+        // Add relative comparison
+        if (index === 0) {
+          context += ` ✅ LOWEST EMISSIONS\n`;
+        } else {
+          const extraEmissions = route.carbon_kg - sortedRoutes[0].carbon_kg;
+          context += ` (+${extraEmissions.toFixed(2)} kg more than ${sortedRoutes[0].mode})\n`;
+        }
+
+        context += `\n`;
+      });
+
+      // Add emissions summary
+      const totalSavings = sortedRoutes[sortedRoutes.length - 1].carbon_kg - sortedRoutes[0].carbon_kg;
+      context += `EMISSIONS INSIGHT: Choosing ${sortedRoutes[0].mode} over ${sortedRoutes[sortedRoutes.length - 1].mode} saves ${totalSavings.toFixed(2)} kg CO₂\n\n`;
+    }
+
+    context += `USER QUESTION: ${message}\n\n`;
+    context += `INSTRUCTIONS: Provide a helpful, concise response (2-3 sentences max). Focus on practical advice and environmental impact. Use friendly, conversational language.`;
+
+    // Generate response
+    const result = await model.generateContent(context);
+    const response = result.response;
+    const text = response.text();
+
+    res.json({
+      reply: text,
+      success: true
+    });
+
+  } catch (err) {
+    console.error("Gemini API Error:", err.message);
+    res.status(500).json({
+      error: "Failed to get AI response",
+      reply: "Sorry, I'm having trouble connecting right now. Please try again."
+    });
+  }
+});
+// ========== END GEMINI AI CHAT ENDPOINT ==========
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
