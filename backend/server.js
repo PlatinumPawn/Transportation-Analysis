@@ -18,7 +18,7 @@ const MODES = ["driving", "transit", "bicycling", "walking", "e-bike", "e-scoote
 const EMISSIONS_FACTORS = { 
   driving: 0.18,    
   transit: 1.3,
-  bicycling: 0.021,
+  bicycling: 0.0,
   walking: 0.0,
   "e-bike": 0.024, 
   "e-scooter": 0.12
