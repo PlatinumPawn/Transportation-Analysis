@@ -812,6 +812,36 @@ async function sendChatMessage() {
   }
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  const welcomePopup = document.getElementById("popup"); // renamed to match your HTML
+  const aboutPopup = document.getElementById("about-popup");
+  const nextPopupBtn = document.getElementById("continue-btn");
+  const continueBtn = document.getElementById("continue-to-map");
+
+
+  nextPopupBtn.addEventListener("click", () => {
+    // Hide the first popup and show the About Us popup
+    welcomePopup.classList.add("hidden");
+    aboutPopup.classList.remove("hidden");
+  });
+
+
+  continueBtn.addEventListener("click", () => {
+    // Hide the About Us popup and show the map
+    aboutPopup.classList.add("hidden");
+
+
+    // Initialize map only now
+    if (typeof loadMap === "function") {
+      loadMap();
+    } else {
+      console.error("loadMap() not defined yet.");
+    }
+  });
+});
+
+
+
 // Make functions globally available
 window.toggleChat = toggleChat;
 window.sendChatMessage = sendChatMessage;
