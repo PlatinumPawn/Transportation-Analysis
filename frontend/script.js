@@ -1,6 +1,23 @@
 let map, geocoder;
 let startMarker, endMarker;
-let currentPolyline = null; // to remove old route
+
+// Separate polyline for each transportation mode
+let walkingPolyline = null;
+let drivingPolyline = null;
+let transitPolyline = null;
+let bicyclingPolyline = null;
+let ebikePolyline = null;
+let escooterPolyline = null;
+
+// Color scheme for each mode
+const routeColors = {
+  walking: '#4285F4',    // Blue
+  driving: '#EA4335',    // Red
+  transit: '#9C27B0',    // Purple
+  bicycling: '#34A853',  // Green
+  'e-bike': '#FF6F00',   // Orange
+  'e-scooter': '#FBBC04' // Yellow
+};
 
 // Load Google Maps with callback to initMap
 async function loadMap() {
@@ -31,43 +48,92 @@ async function handleRouteChange() {
       `http://localhost:8080/api/routes?origin=${origin.lat()},${origin.lng()}&destination=${destination.lat()},${destination.lng()}`
     );
     const routes = await response.json();
+    console.log("Routes received:", routes); // Debug: see what we got
+
     if (routes.length === 0) {
       console.warn("No routes returned from backend");
       return;
     }
 
-    // Display walking route by default
-    const walkingRoute = routes.find(r => r.mode === "walking");
-    if (walkingRoute && walkingRoute.polyline) {
-      displayRoute(walkingRoute.polyline);
-    } else {
-      console.warn("No walking route available");
-    }
+    // Sort routes by stroke weight (thickest first) so they layer properly
+    const modeOrder = ['e-scooter', 'transit', 'walking', 'driving', 'bicycling', 'e-bike'];
+    const sortedRoutes = routes.sort((a, b) => {
+      return modeOrder.indexOf(b.mode) - modeOrder.indexOf(a.mode);
+    });
+
+    // Display all 6 routes in different colors
+    sortedRoutes.forEach(route => {
+      console.log(`Displaying ${route.mode}:`, route.polyline ? 'has polyline' : 'NO POLYLINE');
+      if (route.polyline) {
+        displayRouteByMode(route.mode, route.polyline);
+      }
+    });
   } catch (err) {
     console.error("Failed to fetch routes:", err);
   }
 }
 
-// Draw the polyline on the map
-function displayRoute(encodedPolyline) {
+// Draw each mode's polyline on the map with its specific color
+function displayRouteByMode(mode, encodedPolyline) {
   if (!encodedPolyline) {
-    console.warn("No polyline available for this route");
+    console.warn(`No polyline available for ${mode}`);
     return;
   }
 
-  // Remove old polyline if exists
-  if (currentPolyline) currentPolyline.setMap(null);
-
   const path = google.maps.geometry.encoding.decodePath(encodedPolyline);
-  currentPolyline = new google.maps.Polyline({
+  const color = routeColors[mode] || '#000000';
+
+  // Use different stroke weights so overlapping routes are visible
+  const strokeWeights = {
+    'walking': 6,
+    'driving': 5,
+    'transit': 7,
+    'bicycling': 4,
+    'e-bike': 3,
+    'e-scooter': 8
+  };
+
+  // Create polyline with mode-specific styling
+  // Use lower opacity for driving-based modes so they show through each other
+  const opacity = ['driving', 'e-bike', 'e-scooter'].includes(mode) ? 0.5 : 0.8;
+
+  const polyline = new google.maps.Polyline({
     path,
     geodesic: true,
-    strokeColor: "#FF0000",
-    strokeOpacity: 0.8,
-    strokeWeight: 5,
+    strokeColor: color,
+    strokeOpacity: opacity,
+    strokeWeight: strokeWeights[mode] || 4,
   });
 
-  currentPolyline.setMap(map);
+  polyline.setMap(map);
+
+  // Store polyline in the appropriate variable
+  switch(mode) {
+    case 'walking':
+      if (walkingPolyline) walkingPolyline.setMap(null);
+      walkingPolyline = polyline;
+      break;
+    case 'driving':
+      if (drivingPolyline) drivingPolyline.setMap(null);
+      drivingPolyline = polyline;
+      break;
+    case 'transit':
+      if (transitPolyline) transitPolyline.setMap(null);
+      transitPolyline = polyline;
+      break;
+    case 'bicycling':
+      if (bicyclingPolyline) bicyclingPolyline.setMap(null);
+      bicyclingPolyline = polyline;
+      break;
+    case 'e-bike':
+      if (ebikePolyline) ebikePolyline.setMap(null);
+      ebikePolyline = polyline;
+      break;
+    case 'e-scooter':
+      if (escooterPolyline) escooterPolyline.setMap(null);
+      escooterPolyline = polyline;
+      break;
+  }
 }
 
 function initMap() {
