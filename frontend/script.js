@@ -4,16 +4,20 @@ let startMarker, endMarker;
 // Separate polyline for each transportation mode
 let walkingPolyline = null;
 let drivingPolyline = null;
-let transitPolyline = null;
+let busPolyline = null;
+let tramPolyline = null;
+let subwayPolyline = null;
 let bicyclingPolyline = null;
 let ebikePolyline = null;
 let escooterPolyline = null;
 
-// Color scheme for each mode
+// Color scheme for each mode - all unique colors
 const routeColors = {
   walking: '#4285F4',    // Blue
   driving: '#EA4335',    // Red
-  transit: '#9C27B0',    // Purple
+  bus: '#9C27B0',        // Purple
+  tram: '#00BCD4',       // Cyan
+  subway: '#FF1744',     // Deep Pink
   bicycling: '#34A853',  // Green
   'e-bike': '#FF6F00',   // Orange
   'e-scooter': '#FBBC04' // Yellow
@@ -70,12 +74,12 @@ async function handleRouteChange() {
     allRoutesData = routes;
 
     // Sort routes by stroke weight (thickest first) so they layer properly
-    const modeOrder = ['e-scooter', 'transit', 'walking', 'driving', 'bicycling', 'e-bike'];
+    const modeOrder = ['e-scooter', 'bus', 'tram', 'subway', 'walking', 'driving', 'bicycling', 'e-bike'];
     const sortedRoutes = routes.sort((a, b) => {
       return modeOrder.indexOf(b.mode) - modeOrder.indexOf(a.mode);
     });
 
-    // Display all 6 routes in different colors
+    // Display all 8 routes in different colors (walking, driving, bus, tram, subway, bicycling, e-bike, e-scooter)
     sortedRoutes.forEach(route => {
       console.log(`Displaying ${route.mode}:`, route.polyline ? 'has polyline' : 'NO POLYLINE');
       if (route.polyline) {
@@ -104,10 +108,12 @@ function displayRouteByMode(mode, encodedPolyline) {
   const strokeWeights = {
     'walking': 6,
     'driving': 5,
-    'transit': 7,
+    'bus': 7,
+    'tram': 8,
+    'subway': 9,
     'bicycling': 4,
     'e-bike': 3,
-    'e-scooter': 8
+    'e-scooter': 10
   };
 
   // Create polyline with mode-specific styling
@@ -134,9 +140,17 @@ function displayRouteByMode(mode, encodedPolyline) {
       if (drivingPolyline) drivingPolyline.setMap(null);
       drivingPolyline = polyline;
       break;
-    case 'transit':
-      if (transitPolyline) transitPolyline.setMap(null);
-      transitPolyline = polyline;
+    case 'bus':
+      if (busPolyline) busPolyline.setMap(null);
+      busPolyline = polyline;
+      break;
+    case 'tram':
+      if (tramPolyline) tramPolyline.setMap(null);
+      tramPolyline = polyline;
+      break;
+    case 'subway':
+      if (subwayPolyline) subwayPolyline.setMap(null);
+      subwayPolyline = polyline;
       break;
     case 'bicycling':
       if (bicyclingPolyline) bicyclingPolyline.setMap(null);
@@ -155,7 +169,7 @@ function displayRouteByMode(mode, encodedPolyline) {
 
 /**
  * Populate the transport options panel with mode buttons
- * Shows all 6 modes with basic info (time, distance, emissions)
+ * Shows all 8 modes with basic info (time, distance, emissions)
  * @param {Array} routes - Array of route objects from backend
  */
 function populateTransportOptions(routes) {
@@ -198,7 +212,9 @@ function createModeButton(route) {
   const icons = {
     walking: '🚶',
     driving: '🚗',
-    transit: '🚌',
+    bus: '🚌',
+    tram: '🚋',
+    subway: '🚇',
     bicycling: '🚴',
     'e-bike': '⚡',
     'e-scooter': '🛴'
@@ -262,7 +278,9 @@ function hideAllPolylinesExcept(keepMode) {
   const polylines = {
     walking: walkingPolyline,
     driving: drivingPolyline,
-    transit: transitPolyline,
+    bus: busPolyline,
+    tram: tramPolyline,
+    subway: subwayPolyline,
     bicycling: bicyclingPolyline,
     'e-bike': ebikePolyline,
     'e-scooter': escooterPolyline
@@ -286,7 +304,7 @@ function hideAllPolylinesExcept(keepMode) {
  */
 function showAllRoutes() {
   const polylines = [
-    walkingPolyline, drivingPolyline, transitPolyline,
+    walkingPolyline, drivingPolyline, busPolyline, tramPolyline, subwayPolyline,
     bicyclingPolyline, ebikePolyline, escooterPolyline
   ];
 
@@ -313,7 +331,7 @@ function showDetailedModeView(mode, routes) {
 
   // Icon mapping
   const icons = {
-    walking: '🚶', driving: '🚗', transit: '🚌',
+    walking: '🚶', driving: '🚗', bus: '🚌', tram: '🚋', subway: '🚇',
     bicycling: '🚴', 'e-bike': '⚡', 'e-scooter': '🛴'
   };
 

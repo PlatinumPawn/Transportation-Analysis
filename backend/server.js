@@ -2,6 +2,7 @@ import express from "express";
 import axios from "axios";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
 
 dotenv.config();
 
@@ -106,7 +107,7 @@ app.get("/api/routes", async (req, res) => {
           duration_min: (leg.duration.value / 60) * durationMultiplier,
           duration_with_traffic_min: hasTrafficData ? (baseDuration / 60) * durationMultiplier : null,
           carbon_kg: (leg.distance.value / 1000) * (EMISSIONS_FACTORS[mode] || 0),
-          polyline: route.overview_polyline?.points || "", // add this
+          polyline: route.overview_polyline?.points || "",
           bounds,
           has_traffic_data: hasTrafficData
         });
