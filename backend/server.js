@@ -24,12 +24,12 @@ const MODES = [
   "e-scooter"
 ];
 
-// update emission factors for bus tram and subway(kg CO₂ / km)
+
 const EMISSIONS_FACTORS = {
   driving: 0.18,
-  bus: 0.082,
-  tram: 0.041,
-  subway: 0.054,
+  bus: 0.13,
+  tram: 0.11,
+  subway: 0.10,
   bicycling: 0.0,
   walking: 0.0,
   "e-bike": 0.024,
