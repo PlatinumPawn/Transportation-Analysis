@@ -35,7 +35,14 @@ async function handleRouteChange() {
       console.warn("No routes returned from backend");
       return;
     }
-    displayRoute("{nqaGj~{pLSp@IXIVABa@xAm@tBGPo@|BABIVK^Od@IZK\\GPIX]lAGVCHIV?@ABM`@K\\IX{@vCGREJK^GVADITK^Mb@CNEHKV?@?@ABm@tBIPKVAFCDADa@xACHENCLABs@fCADELEPELCJ?@a@vAK\\[bAc@zAi@fB[dAk@rBOd@GT]hAADIXY`AKZg@dBGRK\\{@tC[dAw@nCCFk@lBUv@Sr@CHGPc@vAEP");
+
+    // Display walking route by default
+    const walkingRoute = routes.find(r => r.mode === "walking");
+    if (walkingRoute && walkingRoute.polyline) {
+      displayRoute(walkingRoute.polyline);
+    } else {
+      console.warn("No walking route available");
+    }
   } catch (err) {
     console.error("Failed to fetch routes:", err);
   }
