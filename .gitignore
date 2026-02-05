@@ -1,3 +1,4 @@
 node_modules/
 .env
 CLAUDE_REFERENCE.md
+.vscode.vscode/
